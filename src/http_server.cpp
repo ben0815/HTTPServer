@@ -2,7 +2,8 @@
 
 
 http_server::
-http_server(std::string _port) : m_port(_port) {
+http_server(std::string _port, std::string _root_dir) : m_port(_port),
+  m_root_dir(_root_dir) {
   initialize();
 
   m_sfd = socket(m_addr->ai_family, m_addr->ai_socktype, m_addr->ai_protocol);
@@ -55,4 +56,6 @@ initialize() {
   hints.ai_flags = AI_PASSIVE;
 
   getaddrinfo(0, m_port.c_str(), &hints, &m_addr);
+
+  std::cout << "HTTP server initialized on port " << m_port << "." << std::endl;
 }

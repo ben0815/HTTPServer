@@ -15,7 +15,7 @@ class http_server {
 
     http_server() {}
 
-    http_server(std::string _port);
+    http_server(std::string _port, std::string _root_dir);
 
     ~http_server();
 
@@ -31,6 +31,8 @@ class http_server {
     int m_accepted{-1};
 
     std::string m_port{"2490"};
+
+    std::string m_root_dir{"./"};
 
     addrinfo* m_addr{nullptr};
 };
