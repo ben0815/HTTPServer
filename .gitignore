@@ -1,0 +1,4 @@
+*.o
+*.d
+Dependencies
+web_server
