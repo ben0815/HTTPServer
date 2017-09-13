@@ -5,7 +5,36 @@ http_server::
 http_server(std::string _port, std::string _root_dir) : m_port(_port),
   m_root_dir(_root_dir) {
   initialize();
+  run();
+}
 
+
+http_server::
+~http_server() {
+  close(m_sfd);
+  close(m_accepted);
+}
+
+
+void
+http_server::
+initialize() {
+  addrinfo hints;
+
+  memset(&hints, 0, sizeof hints);
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_PASSIVE;
+
+  getaddrinfo(0, m_port.c_str(), &hints, &m_addr);
+
+  std::cout << "HTTP server initialized on port " << m_port << "." << std::endl;
+}
+
+
+void
+http_server::
+run() {
   m_sfd = socket(m_addr->ai_family, m_addr->ai_socktype, m_addr->ai_protocol);
   if(m_sfd == -1)
     std::cerr << "Something went wrong construction the socket!" << std::endl;
@@ -35,27 +64,4 @@ http_server(std::string _port, std::string _root_dir) : m_port(_port),
 
     delete[] buffer;
   }
-}
-
-
-http_server::
-~http_server() {
-  close(m_sfd);
-  close(m_accepted);
-}
-
-
-void
-http_server::
-initialize() {
-  addrinfo hints;
-
-  memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_PASSIVE;
-
-  getaddrinfo(0, m_port.c_str(), &hints, &m_addr);
-
-  std::cout << "HTTP server initialized on port " << m_port << "." << std::endl;
 }

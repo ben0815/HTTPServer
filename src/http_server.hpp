@@ -22,6 +22,10 @@ class http_server {
     // Setup the addrinfo struct for this server.
     void initialize();
 
+    // Startup the http server. Create a socket, bind the socket, listen at the
+    // given port, accept connections, and receive requests.
+    void run();
+
   private:
 
     // Main socket file descriptor.
