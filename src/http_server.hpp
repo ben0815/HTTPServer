@@ -15,12 +15,10 @@ class http_server {
 
     http_server() {}
 
+    // Construct and initialize server. Setup address.
     http_server(std::string _port, std::string _root_dir);
 
     ~http_server();
-
-    // Setup the addrinfo struct for this server.
-    void initialize();
 
     // Startup the http server. Create a socket, bind the socket, listen at the
     // given port, accept connections, and receive requests.

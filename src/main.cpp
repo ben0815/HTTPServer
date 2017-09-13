@@ -23,6 +23,7 @@ main(int _argc, char** _argv) {
     // Create an http server to begin receiving data from localhost at the given
     // port.
     http_server server(port, root_dir);
+    server.run();
   }
   catch(std::exception const& _e) {
     std::cerr << "Runtime exception: " << _e.what() << std::endl;
