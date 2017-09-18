@@ -24,6 +24,15 @@ class http_server {
     // given port, accept connections, and receive requests.
     void run();
 
+    // Parse incoming requests.
+    void parse(const std::string& _request) const;
+
+    // Handle and respond to GET requests.
+    void handle_get_request(const std::string& _req_line) const;
+
+    // Respond with an error code.
+    void error_response(const std::string& _error) const;
+
   private:
 
     // Main socket file descriptor.
