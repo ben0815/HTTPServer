@@ -138,43 +138,26 @@ handle_get_request(const std::string& _req_line) const {
   if(uri.at(uri.size() - 1) == '/')
     path += "index.html";
 
-  std::string extension = "";
-
-  // Get the file extension of the requested resource if applicable.
-  {
-    const size_t start = path.rfind("."),
-                 num = path.size() - start;
-
-    extension = path.substr(start, num);
-  }
-
-  // Check if we have a valid file extension. Also get the content type.
-  const auto& valid = is_valid_ext(extension);
-
-  if(!valid.first) {
-    error_response("415 Unsupported Media Type");
-    return;
-  }
-
-  // Get the type of content from the validity checker.
-  const auto& content_type = valid.second;
-
   // If the resource exists and it is valid, serve it.
-  serve(content_type, path);
+  serve(path);
 }
 
 
 void
 http_server::
-serve(const std::string& _content_type, const std::string& _path) const {
+serve(const std::string& _path) const {
+  // Get the content type of the requested resource.
+  const auto& content_type = get_content_type(_path);
+
+  if(content_type == "") {
+    std::cerr << "Failed to get content type." << std::endl;
+    return;
+  }
+
   // Get the type because text files need to be read differently than image files.
-  const std::string type(_content_type, 0, _content_type.find("/"));
+  const std::string type(content_type, 0, content_type.find("/"));
 
-  auto mode = std::fstream::in;
-
-  // If the resource is an image we need to open it in binary mode.
-  if(type == "image")
-    mode |= std::fstream::binary;
+  const auto mode = std::fstream::in | std::fstream::binary;
 
   // Try to open the resource.
   std::ifstream ifs(_path, mode);
@@ -191,7 +174,7 @@ serve(const std::string& _content_type, const std::string& _path) const {
   // Construct the HTTP response.
   const std::string response = "HTTP/1.1 200 OK\r\nServer: Ben's HTTP server.\r\n"
     "Content-Length: " + std::to_string(content.size()) + "\r\nContent-Type: " +
-    _content_type + "\r\nConnection: Closed\r\n\r\n" + content;
+    content_type + "\r\n" + content;
 
   send(m_accepted, response.c_str(), response.size(), 0);
 }
@@ -206,37 +189,38 @@ error_response(const std::string& _error) const {
 }
 
 
-std::pair<bool, std::string>
+std::string
 http_server::
-is_valid_ext(const std::string& _extension) const {
-  // Whitelist of file extensions. These are the file types that this
-  // server can handle.
-  static std::vector<std::string> white_list{".txt", ".html", ".jpg", "jpeg",
-    ".png", ".ico", ".gif"};
+get_content_type(const std::string& _path) const {
+  std::array<char, 128> buffer;
+  std::string result = "";
 
-  const auto& it = std::find(white_list.cbegin(), white_list.cend(), _extension);
+  // Execute the file command to get the mime type.
+  FILE* pipe = popen(("file -b --mime-type " + _path).c_str(), "r");
 
-  // False if we our extension is not in the white list.
-  if(it == white_list.cend())
-    return std::make_pair(false, "");
+  if(!pipe) {
+    std::cerr << "popen failed." << std::endl;
+    return "";
+  }
 
-  std::string content_type = "";
+  // Read the standard output of the command.
+  try {
+    while(!feof(pipe))
+      if(fgets(buffer.data(), 128, pipe) != nullptr)
+        result += buffer.data();
+  }
+  catch (std::bad_alloc& _ba) {
+    std::cerr << "Bad alloc: " << _ba.what() << std::endl;
+    pclose(pipe);
+    return "";
+  }
 
-  // If extension is valid determine its content type.
-  if(_extension == ".txt")
-    content_type = "text/plain; charset=utf-8";
-  else if(_extension == ".html")
-    content_type = "text/html; charset=utf-8";
-  else if(_extension == ".jpg" or _extension == ".jpeg")
-    content_type = "image/jpeg";
-  else if(_extension == ".png")
-    content_type = "image/png";
-  else if(_extension == ".ico")
-    content_type = "image/ico";
-  else if(_extension == ".gif")
-    content_type = "image/gif";
-  else
-    throw std::runtime_error("Extension invalid after it passed validity test.");
+  pclose(pipe);
 
-  return std::make_pair(true, content_type);
+  if(result.substr(0, 11) == "cannot open") {
+    error_response("404 Not Found");
+    return "";
+  }
+
+  return result;
 }

@@ -5,13 +5,17 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <cstdio>
 #include <string>
+#include <array>
+#include <memory>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <utility>
 #include <iterator>
 #include <algorithm>
+#include <stdexcept>
 
 
 class http_server {
@@ -36,13 +40,13 @@ class http_server {
     void handle_get_request(const std::string& _req_line) const;
 
     // Serve a valid resource.
-    void serve(const std::string& _content_type, const std::string& _path) const;
+    void serve(const std::string& _path) const;
 
     // Respond with an error code.
     void error_response(const std::string& _error) const;
 
-    // Check if we can handle the requested file based on its extension.
-    std::pair<bool, std::string> is_valid_ext(const std::string& _extension) const;
+    // Retrieve the context type of the resource using the linux 'file' command.
+    std::string get_content_type(const std::string& _path) const;
 
   private:
 
