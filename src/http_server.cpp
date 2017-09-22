@@ -4,6 +4,7 @@
 http_server::
 http_server(std::string _port, std::string _root) : m_port(_port),
   m_root(_root) {
+  // Setup address information.
   addrinfo hints;
 
   memset(&hints, 0, sizeof hints);
@@ -20,6 +21,8 @@ http_server(std::string _port, std::string _root) : m_port(_port),
 http_server::
 ~http_server() {
   m_addr = nullptr;
+
+  // Close the files we opened.
   close(m_sfd);
   close(m_accepted);
 }
@@ -53,6 +56,7 @@ run() {
   socklen_t addr_len = (socklen_t) sizeof(sockaddr);
 
   for(;;) {
+    // Accept incoming connections.
     m_accepted = accept(m_sfd, (sockaddr*) &peer_addr, &addr_len);
 
     if(m_accepted == -1) {
@@ -69,7 +73,7 @@ run() {
           "with file descriptor " + std::to_string(m_accepted) + ".");
     }
 
-    const auto request = std::string(buffer);
+    const std::string request(buffer);
 
     // Send the request to the parser to make sure it is a GET request.
     // Handle request appropriately.
@@ -84,12 +88,13 @@ run() {
 void
 http_server::
 parse(const std::string& _request) const {
+  // Parse off the request line and the method.
   const std::string req_line(_request, 0, _request.find("\n")),
                     method(req_line, 0, req_line.find(" "));
 
+  // For this assignment only GET methods are allowed.
   if(method == "GET")
     handle_get_request(req_line);
-  // For this assignment only GET methods are allowed.
   else
     error_response("405 Method Not Allowed");
 }
@@ -98,9 +103,9 @@ parse(const std::string& _request) const {
 void
 http_server::
 handle_get_request(const std::string& _req_line) const {
-  // Get the requested uri.
   std::string uri = "";
 
+  // Get the requested uri.
   {
     const size_t start = _req_line.find(" ") + 1,
                  num = _req_line.rfind(" ") - start;
@@ -109,11 +114,21 @@ handle_get_request(const std::string& _req_line) const {
   }
 
   // Keep URIs under 2000 characters. This makes them work on all browsers.
-  if(uri.size() > 2000)
+  if(uri.size() > 2000) {
     error_response("414 URI Too Long");
+    return;
+  }
+
+  // Make sure '~' and '..' do not exist in the URI to limit access to files
+  // outside the root directory.
+  if(uri.find("~") != std::string::npos or uri.find("..") != std::string::npos) {
+    error_response("403 Forbidden");
+    return;
+  }
+
+  std::string path = "";
 
   // Append the uri to the root to get the path of the requested resource.
-  std::string path = "";
   if(m_root.at(m_root.size() - 1) == '/')
     path = m_root.substr(0, m_root.size() - 1) + uri;
   else
@@ -123,8 +138,9 @@ handle_get_request(const std::string& _req_line) const {
   if(uri.at(uri.size() - 1) == '/')
     path += "index.html";
 
-  // Get the file extension of the requested resource if applicable.
   std::string extension = "";
+
+  // Get the file extension of the requested resource if applicable.
   {
     const size_t start = path.rfind("."),
                  num = path.size() - start;
@@ -132,7 +148,7 @@ handle_get_request(const std::string& _req_line) const {
     extension = path.substr(start, num);
   }
 
-  // Check if we have a valid file extension. Also return the content type.
+  // Check if we have a valid file extension. Also get the content type.
   const auto& valid = is_valid_ext(extension);
 
   if(!valid.first) {
@@ -151,6 +167,7 @@ handle_get_request(const std::string& _req_line) const {
 void
 http_server::
 serve(const std::string& _content_type, const std::string& _path) const {
+  // Get the type because text files need to be read differently than image files.
   const std::string type(_content_type, 0, _content_type.find("/"));
 
   auto mode = std::fstream::in;
@@ -159,7 +176,7 @@ serve(const std::string& _content_type, const std::string& _path) const {
   if(type == "image")
     mode |= std::fstream::binary;
 
-  // Try to open resource.
+  // Try to open the resource.
   std::ifstream ifs(_path, mode);
   if(!ifs) {
     error_response("404 Not Found");

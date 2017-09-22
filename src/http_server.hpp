@@ -35,7 +35,7 @@ class http_server {
     // Handle and respond to GET requests.
     void handle_get_request(const std::string& _req_line) const;
 
-    // Serve a valid file.
+    // Serve a valid resource.
     void serve(const std::string& _content_type, const std::string& _path) const;
 
     // Respond with an error code.

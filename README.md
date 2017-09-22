@@ -17,4 +17,6 @@ is a GET method then the URI will be parsed out. URIs can be a maximum of 2000
 characters. If the URI is a directory ('/root/html/') then the server will try
 to serve 'index.html' in the given directory ('/root/html/index.html'). If a
 resource is requested it will be served if it is a static text file or image in
-the following formats: .txt, .html, .jpg, .jpeg, .png, .ico, .gif.
+the following formats: .txt, .html, .jpg, .jpeg, .png, .ico, .gif. URIs
+including either '~' or '..' are not allowed to prevent access of files
+outside of the root directory.
