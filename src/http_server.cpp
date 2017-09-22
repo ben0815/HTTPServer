@@ -157,7 +157,11 @@ serve(const std::string& _path) const {
   // Get the type because text files need to be read differently than image files.
   const std::string type(content_type, 0, content_type.find("/"));
 
-  const auto mode = std::fstream::in | std::fstream::binary;
+  auto mode = std::fstream::in;
+
+  // Read image files in binary mode.
+  if(type == "image")
+    mode |= std::fstream::binary;
 
   // Try to open the resource.
   std::ifstream ifs(_path, mode);
