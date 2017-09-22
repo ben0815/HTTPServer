@@ -10,7 +10,7 @@ SRC_DIR ?= .
 # Compiler Configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 CXX 	 = g++
-CXXFLAGS = -std=c++14 -Wall -Werror -pedantic
+CXXFLAGS = -std=c++11 -Wall -Werror -pedantic
 
 ifeq ($(debug), 1)
 	CXXFLAGS += -g

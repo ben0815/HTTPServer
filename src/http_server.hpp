@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <array>
 #include <memory>
