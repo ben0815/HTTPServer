@@ -184,15 +184,6 @@ serve(const std::string& _path) const {
 }
 
 
-void
-http_server::
-error_response(const std::string& _error) const {
-  // Send an error to the client.
-  const std::string response = "HTTP/1.1 " + _error + "\r\n";
-  send(m_accepted, response.c_str(), response.size(), 0);
-}
-
-
 std::string
 http_server::
 get_content_type(const std::string& _path) const {
@@ -227,4 +218,13 @@ get_content_type(const std::string& _path) const {
   }
 
   return result;
+}
+
+
+void
+http_server::
+error_response(const std::string& _error) const {
+  // Send an error to the client.
+  const std::string response = "HTTP/1.1 " + _error + "\r\n";
+  send(m_accepted, response.c_str(), response.size(), 0);
 }
