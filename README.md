@@ -5,8 +5,8 @@
 
 #### Usage
 Compile with `make`.
-Execute with `./web_server <port-number> <root-directory>` where '<port-number>'
-is the port you wish to connect with and '<root-directory>' is highest level
+Execute with `./web_server <port-number> <root-directory>` where '\<port-number\>'
+is the port you wish to connect with and '\<root-directory\>' is highest level
 directory containing files that can be served.
 
 #### Description
