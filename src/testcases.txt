@@ -1,0 +1,106 @@
+Test case 1
+
+Request:
+GET / HTTTP/1.1
+Host: localhost:2490
+
+Expected: Serve ./root/index.html
+HTTP/1.1 200 OK
+Content-length: <length-of-index.html>
+Content-type: text/html
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 2
+
+Request:
+GET /index.html HTTTP/1.1
+Host: localhost:2490
+
+Expected: Serve ./root/index.html
+HTTP/1.1 200 OK
+Content-length: <length-of-index.html>
+Content-type: text/html
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 3
+
+Request:
+GET /index.html HTTTP/1.1
+Host: localhost:2490
+
+Expected: Serve ./root/index.html
+HTTP/1.1 200 OK
+Content-length: <length-of-index.html>
+Content-type: text/html
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 4
+
+Request:
+GET /penguin.jpg HTTTP/1.1
+Host: localhost:2490
+
+Expected: Serve ./root/penguin.jpg
+HTTP/1.1 200 OK
+Content-length: <length-of-penguin.jpg>
+Content-type: image/jpg
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 5
+
+Request:
+GET /doesnt-exist.html HTTTP/1.1
+Host: localhost:2490
+
+Expected:
+HTTP/1.1 404 Not Found
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 6
+
+Request:
+HEAD /index.html HTTTP/1.1
+Host: localhost:2490
+
+Expected:
+HTTP/1.1 405 Method Not Allowed
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 7
+
+Request:
+GET /<2000-character-long-URI-looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooongggg...> HTTTP/1.1
+Host: localhost:2490
+
+Expected:
+HTTP/1.1 414 URI Too Long
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 8
+
+Request:
+GET /../../../virus.js HTTTP/1.1
+Host: localhost:2490
+
+Expected:
+HTTP/1.1 403 Forbidden
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Test case 9
+
+Request:
+GET /~/virus.js HTTTP/1.1
+Host: localhost:2490
+
+Expected:
+HTTP/1.1 403 Forbidden
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
