@@ -176,8 +176,8 @@ serve(const std::string& _path) const {
       std::istreambuf_iterator<char>()};
 
   // Construct the HTTP response.
-  const std::string response = "HTTP/1.1 200 OK\r\nServer: Ben's HTTP server.\r\n"
-    "Content-Length: " + std::to_string(content.size()) + "\r\nContent-Type: " +
+  const std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " +
+    std::to_string(content.size()) + "\r\nContent-Type: " +
     content_type + "\r\n" + content;
 
   send(m_accepted, response.c_str(), response.size(), 0);
@@ -195,6 +195,8 @@ get_content_type(const std::string& _path) const {
 
   if(!pipe) {
     std::cerr << "popen failed." << std::endl;
+
+    error_response("500 Internal Server Error");
     return "";
   }
 
@@ -204,9 +206,11 @@ get_content_type(const std::string& _path) const {
       if(fgets(buffer.data(), 128, pipe) != nullptr)
         result += buffer.data();
   }
-  catch (std::bad_alloc& _ba) {
+  catch(std::bad_alloc& _ba) {
     std::cerr << "Bad alloc: " << _ba.what() << std::endl;
     pclose(pipe);
+
+    error_response("500 Internal Server Error");
     return "";
   }
 
