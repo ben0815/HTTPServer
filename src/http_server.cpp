@@ -14,6 +14,11 @@ http_server(std::string _port, std::string _root) : m_port(_port),
 
   getaddrinfo(0, m_port.c_str(), &hints, &m_addr);
 
+  if(m_addr == nullptr) {
+    std::cerr << "Something went wrong setting up address information." << std::endl;
+    getaddrinfo(0, "2490", &hints, &m_addr);
+  }
+
   std::cout << "HTTP server initialized on port " << m_port << "." << std::endl;
 }
 
@@ -66,14 +71,20 @@ run() {
     }
 
     // Continuously receive and serve requests from the client.
-    char* buffer = new char[8912];
-    if(recv(m_accepted, buffer, 8912, 0) == -1) {
+    char* buffer = new char[1024];
+    if(recv(m_accepted, buffer, 1024, 0) == -1) {
       perror("Receive failed");
       throw std::runtime_error("Failed to receive data from accepting socket "
           "with file descriptor " + std::to_string(m_accepted) + ".");
     }
 
     const std::string request(buffer);
+
+    // Check the size of the request.
+    if(request.size() >= 1024) {
+      error_response("400 Bad Request");
+      continue;
+    }
 
     // Send the request to the parser to make sure it is a GET request.
     // Handle request appropriately.
@@ -92,11 +103,18 @@ parse(const std::string& _request) const {
   const std::string req_line(_request, 0, _request.find("\n")),
                     method(req_line, 0, req_line.find(" "));
 
+  // Check for host header.
+  if(_request.find("Host") == std::string::npos) {
+    error_response("400 Bad Request");
+    return;
+  }
+
+
   // For this assignment only GET methods are allowed.
   if(method == "GET")
     handle_get_request(req_line);
   else
-    error_response("405 Method Not Allowed");
+    error_response("501 Not Implemented");
 }
 
 
@@ -111,10 +129,29 @@ handle_get_request(const std::string& _req_line) const {
                  num = _req_line.rfind(" ") - start;
 
     uri = _req_line.substr(start, num);
+
+    // Parse off any query parameters.
+    const size_t q_mark = uri.find("?");
+    if(q_mark != std::string::npos)
+      uri = uri.substr(0, q_mark);
+
+    std::cout << uri << std::endl;
+  }
+
+  // Make sure the version is in the request.
+  if(_req_line.find("HTTP/1.1") == std::string::npos) {
+    error_response("400 Bad Request");
+    return;
+  }
+
+  // URI must be present.
+  if(uri.empty()) {
+    error_response("400 Bad Request");
+    return;
   }
 
   // Keep URIs under 2000 characters. This makes them work on all browsers.
-  if(uri.size() > 2000) {
+  else if(uri.size() > 2000) {
     error_response("414 URI Too Long");
     return;
   }
@@ -229,6 +266,10 @@ void
 http_server::
 error_response(const std::string& _error) const {
   // Send an error to the client.
-  const std::string response = "HTTP/1.1 " + _error + "\r\n";
+  const std::string html = "<!DOCTYPE HTML><html><head><title>" + _error +
+    "</title></head><body><h1>" + _error + "</body></html>",
+                    response = "HTTP/1.1 " + _error + "\r\nContent-Length: " +
+    std::to_string(html.size()) + "\r\nContent-Type: text/html\r\n\r\n" + html;
+
   send(m_accepted, response.c_str(), response.size(), 0);
 }
