@@ -1,7 +1,6 @@
 # HTTPServer
 
 #### Ben Smith
-#### UIN: 923006817
 
 #### Usage
 Compile with `make`.
